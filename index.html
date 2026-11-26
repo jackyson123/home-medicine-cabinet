@@ -1,0 +1,1687 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <link rel="icon" href="data:," />
+    <title>屋企藥箱管家</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet" />
+    <style>
+      button, [role="button"], select, summary, input:not([type="checkbox"], [type="radio"]) { min-height: 2.25rem; }
+      * { box-sizing: border-box; }
+      :root{
+        --bg:#f6f5f1; --surface:#ffffff; --surface2:#efeee8; --ink:#1d2422; --ink2:#5a6660;
+        --line:#ddd9cf; --teal:#0e7569; --teal-dark:#0a5a51; --teal-tint:#e2f1ee;
+        --red:#bc3327; --red-tint:#fbeae7; --amber:#96690d; --amber-tint:#faf0da;
+        --green:#2e7d46; --green-tint:#e6f2e8; --radius:14px;
+        --shadow:0 1px 2px rgba(29,36,34,.06),0 4px 14px rgba(29,36,34,.06);
+      }
+      @media (prefers-color-scheme: dark){
+        :root{
+          --bg:#131716; --surface:#1d2321; --surface2:#262d2a; --ink:#eceee9; --ink2:#a7b3ac;
+          --line:#39423d; --teal:#4cc2b2; --teal-dark:#8fdcd1; --teal-tint:#173b36;
+          --red:#ff9a8d; --red-tint:#45231f; --amber:#eec27a; --amber-tint:#42351a;
+          --green:#8fd0a2; --green-tint:#1e3828;
+          --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 14px rgba(0,0,0,.25);
+        }
+      }
+      html{ -webkit-text-size-adjust:100%; }
+      body{ margin:0; background:var(--bg); color:var(--ink);
+        font-family:"Noto Sans TC","PingFang HK","Microsoft JhengHei",system-ui,sans-serif;
+        font-size:16px; line-height:1.55; }
+      .wrap{ max-width:880px; margin:0 auto; padding:14px 14px 110px; }
+      h1{ font-size:1.45rem; font-weight:900; margin:2px 0 2px; letter-spacing:.01em; }
+      h2{ font-size:1.12rem; font-weight:900; margin:0 0 10px; }
+      h3{ font-size:1rem; font-weight:700; margin:0 0 6px; }
+      p{ margin:0 0 8px; }
+      .sub{ color:var(--ink2); font-size:.92rem; }
+      button{ font:inherit; cursor:pointer; }
+      input,select,textarea{ font:inherit; color:var(--ink); background:var(--surface);
+        border:1.5px solid var(--line); border-radius:10px; padding:8px 10px; width:100%; }
+      input:focus,select:focus,textarea:focus{ outline:2px solid var(--teal); outline-offset:1px; border-color:var(--teal); }
+      label.flabel{ display:block; font-weight:700; font-size:.9rem; margin:11px 0 5px; }
+      label.flabel:first-child{ margin-top:0; }
+      .hint{ font-size:.82rem; color:var(--ink2); margin-top:4px; }
+
+      /* alert banner */
+      .alertbar{ border-radius:var(--radius); padding:12px 14px; margin:12px 0; display:none; }
+      .alertbar.show{ display:block; }
+      .alertbar.danger{ background:var(--red-tint); border:1.5px solid var(--red); }
+      .alertbar.warn{ background:var(--amber-tint); border:1.5px solid var(--amber); }
+      .alertbar .at{ font-weight:900; display:flex; align-items:center; gap:8px; }
+      .alertbar ul{ margin:6px 0 0; padding-left:20px; }
+      .alertbar li{ margin:2px 0; }
+
+      /* stat cards */
+      .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:12px 0 4px; }
+      .stat{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        padding:10px 8px; text-align:center; box-shadow:var(--shadow); }
+      .stat .n{ font-size:1.5rem; font-weight:900; line-height:1.15; }
+      .stat .l{ font-size:.78rem; color:var(--ink2); font-weight:500; }
+      .stat.bad .n{ color:var(--red); } .stat.warnn .n{ color:var(--amber); }
+
+      /* tabs */
+      .tabs{ display:flex; gap:6px; margin:16px 0 12px; overflow-x:auto; padding-bottom:2px; scrollbar-width:none; }
+      .tabs::-webkit-scrollbar{ display:none; }
+      .tab{ flex:1 0 auto; border:1.5px solid var(--line); background:var(--surface); color:var(--ink);
+        border-radius:999px; padding:8px 14px; font-weight:700; font-size:.95rem; min-height:2.75rem; }
+      .tab[aria-selected="true"]{ background:var(--teal); border-color:var(--teal); color:#fff; }
+      @media (prefers-color-scheme: dark){ .tab[aria-selected="true"]{ color:#0b2420; } }
+      @media (max-width:520px){
+        .tabs{ flex-wrap:wrap; overflow-x:visible; }
+        .tab{ flex:1 1 42%; padding:8px 8px; font-size:.92rem; }
+        .stats{ grid-template-columns:repeat(2,1fr); }
+      }
+      .tab .cnt{ display:inline-block; background:var(--red); color:#fff; border-radius:999px;
+        font-size:.72rem; min-width:20px; padding:1px 5px; margin-left:5px; vertical-align:2px; }
+      .tab[aria-selected="true"] .cnt{ background:#fff; color:var(--red); }
+
+      /* member chips */
+      .members{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:6px 0 12px; }
+      .mchip{ display:inline-flex; align-items:center; gap:7px; border:1.5px solid var(--line);
+        background:var(--surface); border-radius:999px; padding:5px 13px 5px 6px; font-weight:700; min-height:2.75rem; }
+      .mchip[aria-pressed="true"]{ border-color:var(--teal); background:var(--teal-tint); }
+      .avatar{ width:30px; height:30px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+        color:#fff; font-weight:900; font-size:.9rem; flex:none; }
+      .iconbtn{ display:inline-flex; align-items:center; gap:6px; border:1.5px dashed var(--line);
+        background:transparent; color:var(--ink2); border-radius:999px; padding:5px 13px; font-weight:700; min-height:2.75rem; }
+
+      /* toolbar */
+      .toolbar{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+      .toolbar .search{ flex:1 1 170px; position:relative; }
+      .toolbar select{ flex:0 1 150px; width:auto; }
+      .btn{ border:none; border-radius:12px; padding:10px 18px; font-weight:900; min-height:2.9rem;
+        display:inline-flex; align-items:center; gap:8px; justify-content:center; }
+      .btn.primary{ background:var(--teal); color:#fff; }
+      @media (prefers-color-scheme: dark){ .btn.primary{ color:#0b2420; } }
+      .btn.ghost{ background:var(--surface); color:var(--ink); border:1.5px solid var(--line); }
+      .btn.danger-ghost{ background:var(--surface); color:var(--red); border:1.5px solid var(--red); }
+      .btn.small{ padding:6px 12px; min-height:2.4rem; font-size:.9rem; border-radius:10px; }
+      .btn:active{ transform:translateY(1px); }
+      .addbar{ margin:4px 0 14px; }
+      .addbar .btn{ width:100%; font-size:1.05rem; }
+
+      /* medicine cards */
+      .grid{ display:grid; grid-template-columns:1fr; gap:12px; }
+      @media (min-width:640px){ .grid{ grid-template-columns:1fr 1fr; } }
+      .card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        box-shadow:var(--shadow); padding:13px 14px; position:relative; overflow:hidden; }
+      .card::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--green); }
+      .card.st-soon::before{ background:var(--amber); }
+      .card.st-expired::before,.card.st-openbad::before{ background:var(--red); }
+      .card.st-low::before{ background:var(--amber); }
+      .cardtop{ display:flex; gap:11px; }
+      .thumb{ width:64px; height:64px; border-radius:10px; object-fit:cover; flex:none; background:var(--surface2);
+        border:1px solid var(--line); }
+      .thumbph{ width:64px; height:64px; border-radius:10px; flex:none; background:var(--teal-tint);
+        display:flex; align-items:center; justify-content:center; color:var(--teal); }
+      .mname{ font-weight:900; font-size:1.06rem; line-height:1.3; }
+      .tags{ display:flex; flex-wrap:wrap; gap:5px; margin-top:4px; }
+      .tag{ font-size:.76rem; font-weight:700; border-radius:999px; padding:2px 9px; background:var(--surface2); color:var(--ink2); }
+      .tag.who{ color:#fff; }
+      .badge{ font-size:.8rem; font-weight:900; border-radius:8px; padding:3px 9px; display:inline-block; }
+      .badge.ok{ background:var(--green-tint); color:var(--green); }
+      .badge.soon{ background:var(--amber-tint); color:var(--amber); }
+      .badge.bad{ background:var(--red-tint); color:var(--red); }
+      .facts{ margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:.9rem; }
+      .facts .fk{ color:var(--ink2); font-size:.8rem; display:block; }
+      .facts .fv{ font-weight:700; }
+      .bar{ height:7px; background:var(--surface2); border-radius:99px; margin-top:10px; overflow:hidden; }
+      .bar i{ display:block; height:100%; border-radius:99px; background:var(--green); }
+      .bar i.soon{ background:var(--amber); } .bar i.bad{ background:var(--red); }
+      .cardactions{ display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+      .qtyrow{ display:flex; align-items:center; gap:8px; margin-top:10px; background:var(--surface2);
+        border-radius:10px; padding:7px 10px; }
+      .qtyrow .qn{ font-weight:900; font-size:1.05rem; }
+      .qtybtn{ width:40px; height:40px; border-radius:50%; border:1.5px solid var(--line);
+        background:var(--surface); font-size:1.15rem; font-weight:900; line-height:1; flex:none; }
+      .lowflag{ color:var(--amber); font-weight:900; font-size:.85rem; }
+
+      /* schedule */
+      .timegroup{ margin-bottom:16px; }
+      .timehead{ display:flex; align-items:baseline; gap:9px; margin-bottom:8px; }
+      .timehead .tm{ font-size:1.3rem; font-weight:900; color:var(--teal-dark); }
+      .dose{ display:flex; gap:11px; align-items:flex-start; background:var(--surface); border:1px solid var(--line);
+        border-radius:var(--radius); box-shadow:var(--shadow); padding:12px 13px; margin-bottom:9px; }
+      .dose.done{ opacity:.62; }
+      .dose .grow{ flex:1; min-width:0; }
+      .takbtn{ flex:none; border-radius:10px; border:1.5px solid var(--teal); color:var(--teal);
+        background:var(--teal-tint); font-weight:900; padding:8px 14px; min-height:2.75rem; }
+      .dose.done .takbtn{ background:var(--surface2); border-color:var(--line); color:var(--ink2); }
+
+      /* visits */
+      .visit{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        box-shadow:var(--shadow); padding:13px 14px; margin-bottom:11px; }
+      .visit .vdate{ font-weight:900; color:var(--teal-dark); }
+      .medchips{ display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+      .medchip{ display:inline-flex; align-items:center; gap:7px; background:var(--teal-tint);
+        border-radius:999px; padding:5px 6px 5px 12px; font-weight:700; font-size:.9rem; }
+      .medchip button{ border:none; background:var(--teal); color:#fff; border-radius:999px;
+        font-size:.78rem; font-weight:900; padding:4px 10px; min-height:2rem; }
+      @media (prefers-color-scheme: dark){ .medchip button{ color:#0b2420; } }
+
+      /* sections / guide */
+      .panel{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        box-shadow:var(--shadow); padding:15px 16px; margin-bottom:14px; }
+      .panel ol,.panel ul{ margin:6px 0 4px; padding-left:22px; }
+      .panel li{ margin:5px 0; }
+      .caution{ background:var(--amber-tint); border:1.5px solid var(--amber); border-radius:12px; padding:11px 13px; }
+      .caution .ct{ font-weight:900; display:flex; gap:8px; align-items:center; }
+      .empty{ text-align:center; padding:34px 18px; background:var(--surface); border:1.5px dashed var(--line);
+        border-radius:var(--radius); }
+      .empty .big{ font-size:1.1rem; font-weight:900; margin:10px 0 4px; }
+      .hidden{ display:none !important; }
+
+      /* dialog */
+      dialog{ border:none; border-radius:18px; padding:0; width:min(94vw,560px); max-height:92dvh;
+        background:var(--surface); color:var(--ink); box-shadow:0 18px 50px rgba(0,0,0,.3); }
+      dialog::backdrop{ background:rgba(10,15,14,.55); }
+      .dlgbody{ padding:18px 18px 20px; overflow-y:auto; max-height:92dvh; }
+      .dlghead{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+      .xbtn{ border:none; background:var(--surface2); width:42px; height:42px; border-radius:50%;
+        font-size:1.05rem; flex:none; color:var(--ink); }
+      .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+      .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+      @media (max-width:480px){ .row3{ grid-template-columns:1fr 1fr; } }
+      .photobox{ display:flex; gap:11px; align-items:center; margin-top:6px; }
+      .photobox img{ width:74px; height:74px; object-fit:cover; border-radius:10px; border:1px solid var(--line); }
+      .timechips{ display:flex; flex-wrap:wrap; gap:7px; margin-top:7px; }
+      .tchip{ border:1.5px solid var(--line); background:var(--surface); border-radius:999px;
+        padding:6px 13px; font-weight:700; min-height:2.5rem; }
+      .tchip[aria-pressed="true"]{ background:var(--teal); border-color:var(--teal); color:#fff; }
+      @media (prefers-color-scheme: dark){ .tchip[aria-pressed="true"]{ color:#0b2420; } }
+      .switchrow{ display:flex; align-items:center; gap:10px; margin-top:16px; font-weight:700; }
+      .switchrow input{ width:22px; height:22px; accent-color:var(--teal); }
+      .dlgfoot{ display:flex; gap:9px; margin-top:18px; position:sticky; bottom:0;
+        background:var(--surface); padding:12px 0 4px; border-top:1px solid var(--line); z-index:2; }
+      .dlgfoot .btn{ flex:1; }
+
+      /* toast */
+      #toast{ position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(80px);
+        background:var(--ink); color:var(--bg); font-weight:700; border-radius:12px; padding:11px 18px;
+        max-width:92vw; text-align:center; opacity:0; transition:.25s; z-index:60; pointer-events:none;
+        box-shadow:0 8px 24px rgba(0,0,0,.25); }
+      #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+      .foot{ margin-top:26px; text-align:center; }
+      svg.ic{ width:20px; height:20px; flex:none; }
+
+      /* follow-up / emergency / symptoms */
+      .fu{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        box-shadow:var(--shadow); padding:13px 14px; margin-bottom:11px; position:relative; overflow:hidden; }
+      .fu::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--green); }
+      .fu.fu-soon::before{ background:var(--amber); }
+      .fu.fu-over::before{ background:var(--red); }
+      .fu.fu-done{ opacity:.6; } .fu.fu-done::before{ background:var(--line); }
+      .fu .fdate{ font-size:1.15rem; font-weight:900; color:var(--teal-dark); }
+      .emgcard{ background:var(--surface); border:2px solid var(--red); border-radius:18px;
+        box-shadow:var(--shadow); padding:18px; margin-bottom:14px; }
+      .emgcard .ename{ font-size:1.7rem; font-weight:900; line-height:1.25; }
+      .emgsec{ margin-top:14px; }
+      .emgsec .ek{ font-size:.82rem; font-weight:900; color:var(--ink2); letter-spacing:.04em; }
+      .emgsec .ev{ font-size:1.12rem; font-weight:700; line-height:1.5; white-space:pre-wrap; }
+      .emgsec .ev.allergy{ color:var(--red); font-size:1.25rem; font-weight:900; }
+      .emgsec .ev.blood{ font-size:1.6rem; font-weight:900; color:var(--red); }
+      .emgmeds{ margin:6px 0 0; padding-left:20px; font-size:1.02rem; }
+      .emgmeds li{ margin:3px 0; }
+      .sym{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+        box-shadow:var(--shadow); padding:13px 14px; margin-bottom:11px; }
+      .tempbadge{ font-size:1rem; font-weight:900; border-radius:10px; padding:4px 11px; display:inline-block; }
+      .tempbadge.ok{ background:var(--green-tint); color:var(--green); }
+      .tempbadge.warn{ background:var(--amber-tint); color:var(--amber); }
+      .tempbadge.bad{ background:var(--red-tint); color:var(--red); }
+      .micbtn{ flex:none; width:46px; height:46px; border-radius:12px; border:1.5px solid var(--teal);
+        background:var(--teal-tint); color:var(--teal-dark); display:inline-flex; align-items:center; justify-content:center; }
+      .micbtn.rec{ background:var(--red); border-color:var(--red); color:#fff; animation:pulse 1s infinite; }
+      @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:.55; } }
+      .fieldrow{ display:flex; gap:8px; align-items:stretch; }
+      .fieldrow input,.fieldrow textarea{ flex:1; min-width:0; }
+      .printsheet{ font-size:.98rem; }
+      .printsheet table{ width:100%; border-collapse:collapse; margin-top:8px; }
+      .printsheet th,.printsheet td{ border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }
+      .printsheet th{ background:var(--surface2); font-size:.85rem; }
+      @media print{
+        body{ background:#fff; }
+        dialog, #toast{ display:none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>屋企藥箱</h1>
+      <p class="sub" id="todayLine"></p>
+
+      <div class="alertbar danger" id="alertDanger" role="alert"></div>
+      <div class="alertbar warn" id="alertWarn" role="alert"></div>
+
+      <div class="stats" id="stats"></div>
+
+      <nav class="tabs" role="tablist" aria-label="主要分頁">
+        <button class="tab" role="tab" data-tab="cabinet" aria-selected="true">藥箱<span class="cnt hidden" id="cntCab"></span></button>
+        <button class="tab" role="tab" data-tab="today" aria-selected="false">今日食藥<span class="cnt hidden" id="cntToday"></span></button>
+        <button class="tab" role="tab" data-tab="followup" aria-selected="false">覆診提醒<span class="cnt hidden" id="cntFu"></span></button>
+        <button class="tab" role="tab" data-tab="emergency" aria-selected="false">緊急資料卡</button>
+        <button class="tab" role="tab" data-tab="symptoms" aria-selected="false">體溫・症狀</button>
+        <button class="tab" role="tab" data-tab="visits" aria-selected="false">睇醫生記錄</button>
+        <button class="tab" role="tab" data-tab="care" aria-selected="false">棄置・備份</button>
+      </nav>
+
+      <!-- ============ 藥箱 ============ -->
+      <section id="page-cabinet">
+        <div class="members" id="memberChips"></div>
+        <div class="addbar">
+          <button class="btn primary" id="btnAddMed">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            加入藥物（影低藥盒）
+          </button>
+        </div>
+        <div class="toolbar">
+          <div class="search"><input type="search" id="q" placeholder="搜尋藥名、類別、存放位置、備註、家人…" aria-label="搜尋藥物" /></div>
+          <select id="fStatus" aria-label="按狀態篩選">
+            <option value="all">全部狀態</option>
+            <option value="attention">要留意（到期／開封／唔夠）</option>
+            <option value="soon">即將到期</option>
+            <option value="expired">已過期</option>
+            <option value="low">數量不足</option>
+            <option value="ok">正常</option>
+          </select>
+          <select id="fSort" aria-label="排序">
+            <option value="expiry">最快到期排先</option>
+            <option value="name">藥名</option>
+            <option value="qty">數量最少排先</option>
+          </select>
+          <button class="btn ghost small" id="btnPrintList" style="min-height:2.75rem">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="7"/></svg>
+            打印藥單
+          </button>
+        </div>
+        <p class="sub hidden" id="searchInfo" style="margin:-4px 0 10px"></p>
+        <div class="grid" id="medGrid"></div>
+        <div class="empty hidden" id="medEmpty">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.6 13.6a2.1 2.1 0 0 1 0-3l7.4-7.4a2.1 2.1 0 0 1 3 0l6.9 6.9a2.1 2.1 0 0 1 0 3l-7.4 7.4a2.1 2.1 0 0 1-3 0Z"/><path d="m8.5 8.5 7 7M12 7l5 5"/></svg>
+          <div class="big">藥箱仲係空嘅</div>
+          <p class="sub">撳上面「加入藥物」，影低藥盒、打埋到期日同開封日期，<br />以後一打開就知邊隻就快到期、邊隻開咗幾耐。</p>
+        </div>
+      </section>
+
+      <!-- ============ 今日食藥 ============ -->
+      <section id="page-today" class="hidden">
+        <h2 id="todayTitle">今日食藥時間表</h2>
+        <p class="sub">跟住時間食，食完撳「已食」會自動扣數量。時間到之前，呢版會一直排喺前面提醒你。</p>
+        <div id="todayList"></div>
+        <div class="empty hidden" id="todayEmpty">
+          <div class="big">未設定食藥時間</div>
+          <p class="sub">喺藥箱撳任何一隻藥嘅「編輯」，開啟「每日食藥提醒」，<br />設定時間、每次幾多同飯前／飯後，就會出現喺呢度。</p>
+        </div>
+      </section>
+
+      <!-- ============ 睇醫生記錄 ============ -->
+      <section id="page-visits" class="hidden">
+        <div class="addbar">
+          <button class="btn primary" id="btnAddVisit">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新增睇醫生記錄
+          </button>
+        </div>
+        <div id="visitList"></div>
+        <div class="empty hidden" id="visitEmpty">
+          <div class="big">未有睇醫生記錄</div>
+          <p class="sub">每次睇完醫生記低：邊日、邊位醫生、開咗咩藥，<br />仲可以直接將醫生開嘅藥放入藥箱，唔使重打一次。</p>
+        </div>
+      </section>
+
+      <!-- ============ 覆診提醒 ============ -->
+      <section id="page-followup" class="hidden">
+        <div class="addbar">
+          <button class="btn primary" id="btnAddFu">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            新增覆診／配藥日子
+          </button>
+        </div>
+        <p class="sub">記低每位家人下次覆診或者配藥嘅日子，到設定嘅提早日數就會喺首頁同呢版提醒你，唔使靠記性。</p>
+        <div id="fuList"></div>
+        <div class="empty hidden" id="fuEmpty">
+          <div class="big">未有覆診日子</div>
+          <p class="sub">睇完醫生，醫生通常會講下次幾時覆診。<br />撳上面記低佢，到時提早提醒你去覆診同配藥。</p>
+        </div>
+      </section>
+
+      <!-- ============ 緊急資料卡 ============ -->
+      <section id="page-emergency" class="hidden">
+        <p class="sub">去急症室或者睇醫生嗰陣，打開呢版俾醫生睇就得：血型、藥物敏感、長期病患同食緊嘅藥一頁睇晒。資料喺「棄置・備份 → 家人檔案」或者撳下面「編輯健康資料」填。</p>
+        <div class="members" id="emgChips"></div>
+        <div id="emgCard"></div>
+      </section>
+
+      <!-- ============ 體溫・症狀記錄 ============ -->
+      <section id="page-symptoms" class="hidden">
+        <div class="addbar">
+          <button class="btn primary" id="btnAddSym">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            記錄體溫／症狀
+          </button>
+        </div>
+        <p class="sub">邊個唔舒服就記低：幾時、燒到幾多度、有咩症狀、食咗咩藥。睇醫生嗰陣打開呢版，成個病程一目了然。</p>
+        <div class="members" id="symChips"></div>
+        <div id="symList"></div>
+        <div class="empty hidden" id="symEmpty">
+          <div class="big">未有體溫／症狀記錄</div>
+          <p class="sub">發燒、唔舒服嗰陣撳上面記一筆，<br />下次睇醫生就唔使靠估「好似燒咗兩日」。</p>
+        </div>
+      </section>
+
+      <!-- ============ 棄置・備份 ============ -->
+      <section id="page-care" class="hidden">
+        <div class="panel">
+          <h2>過期藥點樣棄置</h2>
+          <div id="expiredList"></div>
+          <ol>
+            <li><strong>唔好沖落廁所或者鋅盤</strong>，藥物成分會污染水源。</li>
+            <li><strong>唔好原盒掉出街</strong>：先撕走或者塗黑藥盒上面嘅個人資料標籤（姓名、病歷編號）。</li>
+            <li>藥丸、藥片可以同<strong>唔吸引嘅嘢撈埋</strong>（例如用過嘅咖啡渣、貓砂），放入密封袋或者膠樽封好，先掉入家居垃圾。</li>
+            <li>藥水倒出嚟同樣撈埋密封；空樽沖一沖水再掉。</li>
+            <li><strong>針筒、針頭等利器</strong>要放入硬身膠盒封好先棄置，唔好直接放入垃圾袋，費事𠝹傷清潔人員。</li>
+            <li>如果屋企附近藥房或者診所有藥物回收安排，可以直接交俾佢哋處理，唔肯定就打去問一問。</li>
+            <li>棄置完，喺上面撳「已棄置」，藥箱就會移除呢隻藥嘅提醒。</li>
+          </ol>
+        </div>
+
+        <div class="panel">
+          <h2>備份／換手機</h2>
+          <p class="sub">所有資料只存喺呢部手機嘅瀏覽器入面。換手機之前，先匯出備份檔，喺新手機匯入返就得。</p>
+          <div class="cardactions">
+            <button class="btn primary small" id="btnExport">匯出備份檔</button>
+            <button class="btn ghost small" id="btnImport">匯入備份</button>
+            <input type="file" id="importFile" accept=".json,application/json" class="hidden" />
+          </div>
+          <p class="hint" id="lastSaved"></p>
+        </div>
+
+        <div class="panel">
+          <h2>家人檔案</h2>
+          <p class="sub">每位家人嘅藥分開記，唔會撈亂。撳家人名可以改名或者刪除（刪除會連埋佢嘅藥同記錄一齊刪除）。</p>
+          <div id="memberManage"></div>
+          <div class="cardactions">
+            <button class="btn ghost small" id="btnAddMember2">＋ 新增家人</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>危險操作</h2>
+          <div class="cardactions">
+            <button class="btn danger-ghost small" id="btnWipe">清除全部資料</button>
+          </div>
+          <p class="hint">會刪走晒所有家人、藥物、食藥、覆診、症狀同睇醫生記錄，冇得復原。建議先匯出備份。</p>
+        </div>
+      </section>
+
+      <p class="foot sub">免費使用・資料只存喺你部手機，唔會上傳去任何地方</p>
+    </div>
+
+    <!-- ============ 藥物表單 ============ -->
+    <dialog id="medDlg">
+      <form method="dialog" class="dlgbody" id="medForm">
+        <div class="dlghead">
+          <h2 id="medDlgTitle">加入藥物</h2>
+          <button type="button" class="xbtn" data-close aria-label="關閉">✕</button>
+        </div>
+
+        <label class="flabel">藥盒相片</label>
+        <div class="photobox">
+          <img id="photoPrev" class="hidden" alt="藥盒相片預覽" />
+          <div>
+            <button type="button" class="btn ghost small" id="btnPhoto">影相／揀相</button>
+            <button type="button" class="btn ghost small hidden" id="btnPhotoDel">刪除相片</button>
+            <input type="file" id="photoFile" accept="image/*" capture="environment" class="hidden" />
+            <div class="hint">影低藥盒正面，到期日印喺盒面就一睇就知。</div>
+          </div>
+        </div>
+
+        <label class="flabel" for="fName">藥名 *</label>
+        <div class="fieldrow">
+          <input id="fName" required placeholder="例如：必理痛 500mg" autocomplete="off" />
+          <button type="button" class="micbtn" id="micName" aria-label="用講嘢輸入藥名" title="講嘢輸入藥名">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+          </button>
+        </div>
+        <div class="hint">唔想打字可以撳咪高峰，講出藥名就得（講完會填入藥名欄，再自己對一對）。</div>
+
+        <div class="row2">
+          <div>
+            <label class="flabel" for="fMember">邊位家人</label>
+            <select id="fMember"></select>
+          </div>
+          <div>
+            <label class="flabel" for="fCat">類別</label>
+            <select id="fCat">
+              <option>成藥</option><option>醫生處方藥</option><option>保健品</option>
+              <option>外用藥（藥膏／藥油）</option><option>眼藥水／滴劑</option>
+              <option>藥水（口服）</option><option>其他</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label class="flabel" for="fExpiry">盒面到期日 *</label>
+            <input type="date" id="fExpiry" required />
+          </div>
+          <div>
+            <label class="flabel" for="fOpened">開封日期</label>
+            <input type="date" id="fOpened" />
+          </div>
+        </div>
+        <div>
+          <label class="flabel" for="fShelf">開封後可用幾耐</label>
+          <select id="fShelf">
+            <option value="">未開封／唔適用</option>
+            <option value="28">開封後 28 日（常見眼藥水）</option>
+            <option value="30">開封後 1 個月</option>
+            <option value="90">開封後 3 個月</option>
+            <option value="180">開封後 6 個月</option>
+            <option value="365">開封後 1 年</option>
+          </select>
+          <div class="hint">唔肯定就睇藥盒說明書，或者問藥劑師。開封到期會同盒面到期日一齊計，邊個早啲就以邊個為準。</div>
+        </div>
+
+        <div class="row3">
+          <div>
+            <label class="flabel" for="fQty">剩餘數量</label>
+            <input type="number" id="fQty" min="0" step="1" placeholder="例如 24" />
+          </div>
+          <div>
+            <label class="flabel" for="fUnit">單位</label>
+            <select id="fUnit"><option>粒</option><option>片</option><option>包</option><option>支</option><option>樽</option><option>ml</option><option>個</option></select>
+          </div>
+          <div>
+            <label class="flabel" for="fLow">少過幾多要配藥</label>
+            <input type="number" id="fLow" min="0" step="1" placeholder="例如 6" />
+          </div>
+        </div>
+
+        <label class="flabel" for="fLoc">放喺邊</label>
+        <input id="fLoc" placeholder="例如：客廳藥箱／雪櫃門" autocomplete="off" />
+
+        <div class="switchrow">
+          <input type="checkbox" id="fSchedOn" />
+          <label for="fSchedOn">每日食藥提醒</label>
+        </div>
+        <div id="schedFields" class="hidden">
+          <div class="row2">
+            <div>
+              <label class="flabel" for="fDose">每次食幾多</label>
+              <input id="fDose" placeholder="例如：1粒／2粒／5ml" autocomplete="off" />
+            </div>
+            <div>
+              <label class="flabel" for="fMeal">飯前定飯後</label>
+              <select id="fMeal"><option>飯後</option><option>飯前</option><option>隨餐</option><option>睡前</option><option>不限</option></select>
+            </div>
+          </div>
+          <label class="flabel">每日食藥時間（可多選）</label>
+          <div class="timechips" id="timeChips"></div>
+          <div class="hint">撳時間加入，再撳一次取消。食完喺「今日食藥」撳「已食」會自動扣數量。</div>
+        </div>
+
+        <label class="flabel" for="fNotes">備註</label>
+        <textarea id="fNotes" rows="2" placeholder="例如：頭痛先食，最多一日 4 次"></textarea>
+
+        <div class="caution" style="margin-top:16px">
+          <div class="ct">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+            新藥會唔會同其他藥相沖？
+          </div>
+          <p style="margin:6px 0 0">呢個 app <strong>唔會</strong>幫你判斷藥物相沖——唔同人、唔同劑量結果都唔同，自己估好危險。加新藥之前，尤其係處方藥同長期食緊嘅藥，<strong>記得問醫生或者註冊藥劑師</strong>，或者睇清楚藥盒說明書嘅「藥物相互作用」一欄。</p>
+        </div>
+
+        <div class="dlgfoot">
+          <button type="button" class="btn ghost" data-close>取消</button>
+          <button type="submit" class="btn primary">儲存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ============ 家人表單 ============ -->
+    <dialog id="memberDlg">
+      <form method="dialog" class="dlgbody" id="memberForm">
+        <div class="dlghead">
+          <h2 id="memberDlgTitle">新增家人</h2>
+          <button type="button" class="xbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <label class="flabel" for="mName">稱呼 *</label>
+        <input id="mName" required placeholder="例如：嫲嫲／細佬／我" autocomplete="off" />
+        <label class="flabel">代表顏色</label>
+        <div class="timechips" id="colorChips"></div>
+        <h3 style="margin-top:18px">健康資料（會顯示喺緊急資料卡）</h3>
+        <div class="row2">
+          <div>
+            <label class="flabel" for="mBlood">血型</label>
+            <select id="mBlood">
+              <option value="">未填</option>
+              <option>A+</option><option>A−</option><option>B+</option><option>B−</option>
+              <option>AB+</option><option>AB−</option><option>O+</option><option>O−</option>
+            </select>
+          </div>
+          <div>
+            <label class="flabel" for="mContact">緊急聯絡人</label>
+            <input id="mContact" placeholder="例如：阿仔 9123 4567" autocomplete="off" />
+          </div>
+        </div>
+        <label class="flabel" for="mAllergy">藥物敏感（冇就留空）</label>
+        <div class="fieldrow">
+          <textarea id="mAllergy" rows="2" placeholder="例如：盤尼西林敏感，會出疹"></textarea>
+          <button type="button" class="micbtn" id="micAllergy" aria-label="用講嘢輸入藥物敏感" title="講嘢輸入">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+          </button>
+        </div>
+        <label class="flabel" for="mCond">長期病患（冇就留空）</label>
+        <textarea id="mCond" rows="2" placeholder="例如：高血壓、糖尿病"></textarea>
+        <div class="dlgfoot">
+          <button type="button" class="btn danger-ghost hidden" id="btnDelMember">刪除</button>
+          <button type="button" class="btn ghost" data-close>取消</button>
+          <button type="submit" class="btn primary">儲存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ============ 睇醫生表單 ============ -->
+    <dialog id="visitDlg">
+      <form method="dialog" class="dlgbody" id="visitForm">
+        <div class="dlghead">
+          <h2>新增睇醫生記錄</h2>
+          <button type="button" class="xbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="flabel" for="vDate">日期 *</label>
+            <input type="date" id="vDate" required />
+          </div>
+          <div>
+            <label class="flabel" for="vMember">邊位家人</label>
+            <select id="vMember"></select>
+          </div>
+        </div>
+        <label class="flabel" for="vPlace">醫生／診所</label>
+        <input id="vPlace" placeholder="例如：陳大文醫生（旺角）" autocomplete="off" />
+        <label class="flabel" for="vReason">咩事睇醫生</label>
+        <input id="vReason" placeholder="例如：感冒發燒／覆診血壓" autocomplete="off" />
+        <label class="flabel" for="vMeds">醫生開咗咩藥</label>
+        <textarea id="vMeds" rows="3" placeholder="一隻藥一行，例如：&#10;退燒藥水&#10;咳藥水"></textarea>
+        <div class="hint">儲存之後，每隻藥旁邊都有「入藥箱」掣，撳一下就開加入藥物表單，藥名同家人已經幫你填好。</div>
+        <label class="flabel" for="vNotes">備註</label>
+        <textarea id="vNotes" rows="2" placeholder="例如：醫生話血壓穩定咗"></textarea>
+        <div class="row2">
+          <div>
+            <label class="flabel" for="vNext">下次覆診日期（可留空）</label>
+            <input type="date" id="vNext" />
+          </div>
+          <div>
+            <label class="flabel" for="vNextType">覆診類型</label>
+            <select id="vNextType"><option>覆診</option><option>配藥</option><option>覆診＋配藥</option><option>抽血／檢查</option></select>
+          </div>
+        </div>
+        <div class="hint">填咗覆診日期，儲存之後會自動加入「覆診提醒」，到時提早提醒你。</div>
+        <div class="dlgfoot">
+          <button type="button" class="btn ghost" data-close>取消</button>
+          <button type="submit" class="btn primary">儲存記錄</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ============ 覆診表單 ============ -->
+    <dialog id="fuDlg">
+      <form method="dialog" class="dlgbody" id="fuForm">
+        <div class="dlghead">
+          <h2 id="fuDlgTitle">新增覆診日子</h2>
+          <button type="button" class="xbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="flabel" for="fuDate">日期 *</label>
+            <input type="date" id="fuDate" required />
+          </div>
+          <div>
+            <label class="flabel" for="fuTime">時間（可留空）</label>
+            <input type="time" id="fuTime" />
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label class="flabel" for="fuMember">邊位家人</label>
+            <select id="fuMember"></select>
+          </div>
+          <div>
+            <label class="flabel" for="fuType">類型</label>
+            <select id="fuType"><option>覆診</option><option>配藥</option><option>覆診＋配藥</option><option>抽血／檢查</option></select>
+          </div>
+        </div>
+        <label class="flabel" for="fuPlace">邊度覆診／醫生</label>
+        <input id="fuPlace" placeholder="例如：廣華醫院內科／陳大文醫生" autocomplete="off" />
+        <label class="flabel" for="fuRemind">提早幾多日提醒</label>
+        <select id="fuRemind">
+          <option value="1">提早 1 日</option>
+          <option value="3" selected>提早 3 日</option>
+          <option value="7">提早 7 日</option>
+          <option value="14">提早 14 日</option>
+        </select>
+        <div class="hint">提醒會喺你打開呢個 app 嗰陣，喺首頁頂部同「覆診提醒」版顯示。</div>
+        <label class="flabel" for="fuNotes">備註</label>
+        <textarea id="fuNotes" rows="2" placeholder="例如：記得帶覆診紙同藥單去"></textarea>
+        <div class="dlgfoot">
+          <button type="button" class="btn ghost" data-close>取消</button>
+          <button type="submit" class="btn primary">儲存</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ============ 症狀表單 ============ -->
+    <dialog id="symDlg">
+      <form method="dialog" class="dlgbody" id="symForm">
+        <div class="dlghead">
+          <h2 id="symDlgTitle">記錄體溫／症狀</h2>
+          <button type="button" class="xbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <div class="row3">
+          <div>
+            <label class="flabel" for="sDate">日期 *</label>
+            <input type="date" id="sDate" required />
+          </div>
+          <div>
+            <label class="flabel" for="sTime">時間</label>
+            <input type="time" id="sTime" />
+          </div>
+          <div>
+            <label class="flabel" for="sMember">邊位家人</label>
+            <select id="sMember"></select>
+          </div>
+        </div>
+        <label class="flabel" for="sTemp">體溫（°C，可留空）</label>
+        <input type="number" id="sTemp" min="34" max="43" step="0.1" inputmode="decimal" placeholder="例如：38.5" />
+        <div class="hint">38°C 或以上會標示為發燒，39°C 或以上會標示為高燒。</div>
+        <label class="flabel" for="sSym">有咩症狀</label>
+        <div class="fieldrow">
+          <textarea id="sSym" rows="2" placeholder="例如：頭痛、喉嚨痛、冇胃口"></textarea>
+          <button type="button" class="micbtn" id="micSym" aria-label="用講嘢輸入症狀" title="講嘢輸入症狀">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+          </button>
+        </div>
+        <label class="flabel" for="sMeds">食咗咩藥</label>
+        <div class="fieldrow">
+          <input id="sMeds" placeholder="例如：必理痛 1 粒" autocomplete="off" />
+          <button type="button" class="micbtn" id="micSymMed" aria-label="用講嘢輸入食咗咩藥" title="講嘢輸入">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+          </button>
+        </div>
+        <div id="sMedQuick" class="medchips"></div>
+        <label class="flabel" for="sNotes">備註</label>
+        <textarea id="sNotes" rows="2" placeholder="例如：食藥後一個鐘退到 37.8°C"></textarea>
+        <div class="dlgfoot">
+          <button type="button" class="btn ghost" data-close>取消</button>
+          <button type="submit" class="btn primary">儲存記錄</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- ============ 打印藥單 ============ -->
+    <dialog id="printDlg">
+      <div class="dlgbody">
+        <div class="dlghead">
+          <h2>打印藥單</h2>
+          <button type="button" class="xbtn" data-close aria-label="關閉">✕</button>
+        </div>
+        <label class="flabel" for="printMember">邊位家人嘅藥單</label>
+        <select id="printMember"></select>
+        <div class="printsheet" id="printPreview" style="margin-top:12px"></div>
+        <div class="dlgfoot">
+          <button type="button" class="btn ghost" data-close>關閉</button>
+          <button type="button" class="btn primary" id="btnPrintDownload">下載藥單檔印</button>
+        </div>
+        <p class="hint">撳「下載藥單檔印」會下載一個 HTML 檔，用瀏覽器開嚟再撳列印就印到。帶呢張單去睇醫生，醫生一睇就知食緊咩藥。</p>
+      </div>
+    </dialog>
+
+    <!-- ============ 通用確認 ============ -->
+    <dialog id="confirmDlg">
+      <div class="dlgbody">
+        <h2 id="cfTitle">確認</h2>
+        <p id="cfText"></p>
+        <div class="dlgfoot">
+          <button class="btn ghost" id="cfNo">取消</button>
+          <button class="btn primary" id="cfYes">確定</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div id="toast" role="status"></div>
+
+    <script>
+      "use strict";
+      var KEY = "wuqi-medcab-v1";
+      var COLORS = ["#0e7569","#2563eb","#c2410c","#9333ea","#b45309","#15803d","#be185d","#475569"];
+      var state = load();
+      var filterMember = "all";
+      var emgMemberId = null, symFilter = "all";
+      var editMedId = null, editMemberId = null, editPhoto = "";
+      var editFuId = null, editSymId = null;
+      var selTimes = [], selColor = COLORS[0];
+      var confirmCb = null;
+
+      function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+      function todayStr(d){ d = d || new Date(); var m = d.getMonth()+1, dd = d.getDate();
+        return d.getFullYear() + "-" + (m<10?"0":"")+m + "-" + (dd<10?"0":"")+dd; }
+      function parseDay(s){ if(!s) return null; var p = s.split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+      function daysLeft(s){ var t = parseDay(todayStr()), d = parseDay(s); if(!d) return null;
+        return Math.round((d - t) / 86400000); }
+      function daysSince(s){ var v = daysLeft(s); return v === null ? null : -v; }
+      function fmtDate(s){ if(!s) return "—"; var p = s.split("-"); return p[0] + "年" + (+p[1]) + "月" + (+p[2]) + "日"; }
+      function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+        return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+
+      function blankState(){
+        return { members: [
+          { id: uid(), name: "我", color: COLORS[0], blood: "", allergies: "", conditions: "", contact: "" },
+          { id: uid(), name: "屋企共用", color: COLORS[5], blood: "", allergies: "", conditions: "", contact: "" }
+        ], meds: [], visits: [], taken: {}, followups: [], symptoms: [] };
+      }
+      function normalizeState(s){
+        s.visits = s.visits || []; s.taken = s.taken || {};
+        s.followups = s.followups || []; s.symptoms = s.symptoms || [];
+        s.members.forEach(function(mb){
+          if(mb.blood === undefined) mb.blood = "";
+          if(mb.allergies === undefined) mb.allergies = "";
+          if(mb.conditions === undefined) mb.conditions = "";
+          if(mb.contact === undefined) mb.contact = "";
+        });
+        return s;
+      }
+      function load(){
+        try { var raw = localStorage.getItem(KEY); if(raw){ var s = JSON.parse(raw);
+          if(s && s.members && s.meds) return normalizeState(s); } } catch(e){}
+        return blankState();
+      }
+      function save(){
+        try { localStorage.setItem(KEY, JSON.stringify(state));
+          var el = document.getElementById("lastSaved");
+          if(el) el.textContent = "上次儲存：" + new Date().toLocaleString("zh-HK");
+        } catch(e){ toast("儲存空間不足，相片可能太大"); }
+      }
+      function memberById(id){ for(var i=0;i<state.members.length;i++) if(state.members[i].id===id) return state.members[i]; return null; }
+
+      /* ---------- 藥物狀態 ---------- */
+      function medStatus(m){
+        var box = daysLeft(m.expiry);
+        var openExp = null;
+        if(m.opened && m.shelf){ var od = parseDay(m.opened); od.setDate(od.getDate() + (+m.shelf));
+          openExp = Math.round((od - parseDay(todayStr())) / 86400000); }
+        var eff = box; var effKind = "盒面到期";
+        if(openExp !== null && openExp < box){ eff = openExp; effKind = "開封後到期"; }
+        var low = (m.qty !== "" && m.qty !== null && m.low !== "" && m.low !== null && (+m.qty) <= (+m.low));
+        var st = "ok";
+        if(eff !== null && eff < 0) st = "expired";
+        else if(eff !== null && eff <= 30) st = "soon";
+        if(low && st === "ok") st = "low";
+        return { box: box, openExp: openExp, eff: eff, effKind: effKind, low: low, st: st,
+                 openedDays: m.opened ? daysSince(m.opened) : null };
+      }
+      function activeMeds(){ return state.meds.filter(function(m){ return m.status === "active"; }); }
+
+      /* ---------- 渲染 ---------- */
+      function render(){ renderHeader(); renderMembers(); renderMeds(); renderToday(); renderFollowups(); renderEmergency(); renderSymptoms(); renderVisits(); renderCare(); save(); }
+
+      function renderHeader(){
+        var d = new Date();
+        var wk = ["日","一","二","三","四","五","六"][d.getDay()];
+        document.getElementById("todayLine").textContent =
+          "今日 " + fmtDate(todayStr()) + "（星期" + wk + "）・一打開就知邊隻藥就快到期、邊隻開咗幾耐、邊隻唔夠食";
+        var act = activeMeds(), danger = [], warn = [];
+        act.forEach(function(m){
+          var s = medStatus(m), who = memberById(m.memberId);
+          var nm = esc(m.name) + (who ? "（" + esc(who.name) + "）" : "");
+          if(s.st === "expired") danger.push("<li><strong>" + nm + "</strong> 已過期 " + Math.abs(s.eff) + " 日（" + s.effKind + "），唔好再食，去「棄置・備份」睇點處理</li>");
+          if(s.st === "soon") warn.push("<li><strong>" + nm + "</strong> 仲有 " + s.eff + " 日到期（" + s.effKind + " " + fmtDate(s.effKind === "開封後到期" ? openedExpiryStr(m) : m.expiry) + "）</li>");
+          if(s.low) warn.push("<li><strong>" + nm + "</strong> 得返 " + m.qty + esc(m.unit) + "，係時候去配藥</li>");
+          if(s.openExp !== null && s.openExp > 30 && s.openedDays !== null && m.shelf && s.openedDays >= (+m.shelf) * 0.75 && s.st === "ok")
+            warn.push("<li><strong>" + nm + "</strong> 已開封 " + s.openedDays + " 日，接近開封期限</li>");
+        });
+        var fuSoon = 0;
+        (state.followups || []).forEach(function(f){
+          if(f.done) return;
+          var dl = daysLeft(f.date), who = memberById(f.memberId);
+          var nm = esc(f.type) + (who ? "（" + esc(who.name) + "）" : "") + (f.place ? "・" + esc(f.place) : "");
+          if(dl !== null && dl < 0){ danger.push("<li><strong>" + nm + "</strong> 已經過咗 " + Math.abs(dl) + " 日（原定 " + fmtDate(f.date) + "），記得打去診所改期</li>"); fuSoon++; }
+          else if(dl !== null && dl <= (+f.remind || 3)){
+            warn.push("<li><strong>" + nm + "</strong> " + (dl === 0 ? "就係今日" : "仲有 " + dl + " 日") + "（" + fmtDate(f.date) + (f.time ? " " + esc(f.time) : "") + "），記得預備覆診紙同藥單" + (f.type.indexOf("配藥") > -1 ? "，順手配藥" : "") + "</li>");
+            fuSoon++;
+          }
+        });
+        var cf = document.getElementById("cntFu");
+        if(cf){ cf.textContent = fuSoon; cf.classList.toggle("hidden", fuSoon === 0); }
+        var dEl = document.getElementById("alertDanger"), wEl = document.getElementById("alertWarn");
+        dEl.className = "alertbar danger" + (danger.length ? " show" : "");
+        dEl.innerHTML = danger.length ? '<div class="at">⚠ 要即刻處理（過期藥唔好食／覆診已過期）</div><ul>' + danger.join("") + "</ul>" : "";
+        wEl.className = "alertbar warn" + (warn.length ? " show" : "");
+        wEl.innerHTML = warn.length ? '<div class="at">提醒：臨到期／要配藥／就快覆診</div><ul>' + warn.join("") + "</ul>" : "";
+
+        var soon = act.filter(function(m){ var s = medStatus(m); return s.st === "soon"; }).length;
+        var exp = act.filter(function(m){ return medStatus(m).st === "expired"; }).length;
+        var lowc = act.filter(function(m){ return medStatus(m).low; }).length;
+        document.getElementById("stats").innerHTML =
+          stat(act.length, "藥箱藥物") + stat(soon, "30日內到期", "warnn") +
+          stat(exp, "已過期", "bad") + stat(lowc, "數量不足", "warnn");
+        var cb = document.getElementById("cntCab");
+        cb.textContent = exp + soon; cb.classList.toggle("hidden", (exp + soon) === 0);
+        var doses = todayDoses();
+        var pending = doses.filter(function(x){ return !x.done; }).length;
+        var ct = document.getElementById("cntToday");
+        ct.textContent = pending; ct.classList.toggle("hidden", pending === 0);
+      }
+      function stat(n, l, cls){ return '<div class="stat ' + (cls||"") + '"><div class="n">' + n + '</div><div class="l">' + l + "</div></div>"; }
+      function openedExpiryStr(m){ var od = parseDay(m.opened); od.setDate(od.getDate() + (+m.shelf)); return todayStr(od); }
+
+      function renderMembers(){
+        var box = document.getElementById("memberChips");
+        var html = '<button class="mchip" data-mem="all" aria-pressed="' + (filterMember==="all") + '"><span class="avatar" style="background:var(--teal)">全</span>全部家人</button>';
+        state.members.forEach(function(mb){
+          html += '<button class="mchip" data-mem="' + mb.id + '" aria-pressed="' + (filterMember===mb.id) + '">' +
+            '<span class="avatar" style="background:' + mb.color + '">' + esc(mb.name.slice(0,1)) + "</span>" + esc(mb.name) + "</button>";
+        });
+        html += '<button class="iconbtn" id="btnAddMember">＋ 家人</button>';
+        box.innerHTML = html;
+        box.querySelectorAll("[data-mem]").forEach(function(b){
+          b.addEventListener("click", function(){ filterMember = b.getAttribute("data-mem"); render(); });
+        });
+        document.getElementById("btnAddMember").addEventListener("click", function(){ openMember(null); });
+
+        var mg = document.getElementById("memberManage");
+        mg.innerHTML = state.members.map(function(mb){
+          var c = activeMeds().filter(function(m){ return m.memberId === mb.id; }).length;
+          return '<div class="dose"><span class="avatar" style="background:' + mb.color + '">' + esc(mb.name.slice(0,1)) +
+            '</span><div class="grow"><strong>' + esc(mb.name) + '</strong><div class="sub">' + c + ' 隻藥</div></div>' +
+            '<button class="btn ghost small" data-editmem="' + mb.id + '">編輯</button></div>';
+        }).join("");
+        mg.querySelectorAll("[data-editmem]").forEach(function(b){
+          b.addEventListener("click", function(){ openMember(b.getAttribute("data-editmem")); });
+        });
+      }
+
+      function renderMeds(){
+        var q = document.getElementById("q").value.trim().toLowerCase();
+        var fs = document.getElementById("fStatus").value;
+        var so = document.getElementById("fSort").value;
+        var list = activeMeds().filter(function(m){
+          if(filterMember !== "all" && m.memberId !== filterMember) return false;
+          if(q){
+            var who = memberById(m.memberId);
+            var hay = [m.name, m.cat, m.loc || "", m.notes || "", who ? who.name : "",
+              (m.sched && m.sched.on) ? m.sched.dose || "" : ""].join(" ").toLowerCase();
+            if(hay.indexOf(q) === -1) return false;
+          }
+          var s = medStatus(m);
+          if(fs === "attention") return s.st !== "ok";
+          if(fs === "soon") return s.st === "soon";
+          if(fs === "expired") return s.st === "expired";
+          if(fs === "low") return s.low;
+          if(fs === "ok") return s.st === "ok";
+          return true;
+        });
+        list.sort(function(a, b){
+          if(so === "name") return a.name.localeCompare(b.name, "zh-Hant");
+          if(so === "qty") return (+(a.qty||0)) - (+(b.qty||0));
+          return medStatus(a).eff - medStatus(b).eff;
+        });
+        var grid = document.getElementById("medGrid");
+        var si = document.getElementById("searchInfo");
+        if(si){
+          if(q){ si.textContent = "搜尋「" + document.getElementById("q").value.trim() + "」：搵到 " + list.length + " 隻藥"; si.classList.remove("hidden"); }
+          else si.classList.add("hidden");
+        }
+        document.getElementById("medEmpty").classList.toggle("hidden", activeMeds().length !== 0);
+        grid.innerHTML = list.map(medCard).join("");
+        if(activeMeds().length && !list.length)
+          grid.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="big">冇符合嘅藥</div><p class="sub">試下改一改搜尋或者篩選。</p></div>';
+        grid.querySelectorAll("[data-act]").forEach(function(b){
+          b.addEventListener("click", function(){ medAction(b.getAttribute("data-act"), b.getAttribute("data-id")); });
+        });
+      }
+
+      function medCard(m){
+        var s = medStatus(m), who = memberById(m.memberId);
+        var badge, barPct, barCls;
+        if(s.eff < 0){ badge = '<span class="badge bad">已過期 ' + Math.abs(s.eff) + " 日</span>"; barPct = 0; barCls = "bad"; }
+        else if(s.eff === 0){ badge = '<span class="badge bad">今日到期</span>'; barPct = 2; barCls = "bad"; }
+        else if(s.eff <= 30){ badge = '<span class="badge soon">仲有 ' + s.eff + " 日到期</span>"; barPct = Math.max(4, s.eff); barCls = "soon"; }
+        else { badge = '<span class="badge ok">仲有 ' + s.eff + " 日到期</span>"; barPct = Math.min(100, s.eff); barCls = ""; }
+        var photo = m.photo ? '<img class="thumb" src="' + m.photo + '" alt="' + esc(m.name) + ' 藥盒相片" />'
+          : '<div class="thumbph"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 20.5 3.6 13.6a2.1 2.1 0 0 1 0-3l7.4-7.4a2.1 2.1 0 0 1 3 0l6.9 6.9a2.1 2.1 0 0 1 0 3l-7.4 7.4a2.1 2.1 0 0 1-3 0Z"/><path d="m8.5 8.5 7 7"/></svg></div>';
+        var openedTxt = m.opened ? ("已開 " + s.openedDays + " 日（" + fmtDate(m.opened) + "）") : "未開封";
+        var openExpTxt = s.openExp !== null ? fmtDate(openedExpiryStr(m)) + "（開封後）" : "—";
+        var schedTxt = (m.sched && m.sched.on) ? esc(m.sched.dose || "") + "・" + esc(m.sched.times.join("、")) + "・" + esc(m.sched.meal) : "冇設定";
+        var qtyHtml = "";
+        if(m.qty !== "" && m.qty !== null){
+          qtyHtml = '<div class="qtyrow"><span class="sub">剩餘</span>' +
+            '<button class="qtybtn" data-act="minus" data-id="' + m.id + '" aria-label="減少數量">−</button>' +
+            '<span class="qn">' + m.qty + '</span><span class="sub">' + esc(m.unit) + "</span>" +
+            '<button class="qtybtn" data-act="plus" data-id="' + m.id + '" aria-label="增加數量">＋</button>' +
+            (s.low ? '<span class="lowflag">唔夠喇，要去配藥</span>' : "") + "</div>";
+        }
+        return '<article class="card st-' + s.st + '">' +
+          '<div class="cardtop">' + photo + '<div style="min-width:0"><div class="mname">' + esc(m.name) + "</div>" +
+          '<div class="tags">' + (who ? '<span class="tag who" style="background:' + who.color + '">' + esc(who.name) + "</span>" : "") +
+          '<span class="tag">' + esc(m.cat) + "</span>" + (m.loc ? '<span class="tag">' + esc(m.loc) + "</span>" : "") + "</div>" +
+          '<div style="margin-top:7px">' + badge + "</div></div></div>" +
+          '<div class="facts">' +
+          '<div><span class="fk">盒面到期日</span><span class="fv">' + fmtDate(m.expiry) + "</span></div>" +
+          '<div><span class="fk">開封情況</span><span class="fv">' + openedTxt + "</span></div>" +
+          '<div><span class="fk">開封後到期</span><span class="fv">' + openExpTxt + "</span></div>" +
+          '<div><span class="fk">每日食藥</span><span class="fv">' + schedTxt + "</span></div></div>" +
+          '<div class="bar"><i class="' + barCls + '" style="width:' + barPct + '%"></i></div>' +
+          qtyHtml +
+          (m.notes ? '<p class="sub" style="margin-top:9px">' + esc(m.notes) + "</p>" : "") +
+          '<div class="cardactions">' +
+          (!m.opened ? '<button class="btn ghost small" data-act="open" data-id="' + m.id + '">今日開封</button>' : "") +
+          '<button class="btn ghost small" data-act="edit" data-id="' + m.id + '">編輯</button>' +
+          (s.st === "expired" ? '<button class="btn danger-ghost small" data-act="dispose" data-id="' + m.id + '">已棄置</button>' : "") +
+          '<button class="btn ghost small" data-act="usedup" data-id="' + m.id + '">食晒／唔再用</button>' +
+          "</div></article>";
+      }
+
+      function medAction(act, id){
+        var m = null; state.meds.forEach(function(x){ if(x.id === id) m = x; }); if(!m) return;
+        if(act === "edit") openMed(m);
+        else if(act === "open"){ m.opened = todayStr(); toast("已記低今日開封：" + m.name); render(); }
+        else if(act === "plus"){ m.qty = (+m.qty || 0) + 1; render(); }
+        else if(act === "minus"){ m.qty = Math.max(0, (+m.qty || 0) - 1); render(); }
+        else if(act === "dispose"){ askConfirm("已棄置呢隻藥？", "「" + m.name + "」會由藥箱移除，唔再提醒。請跟「棄置・備份」版嘅方法處理，唔好沖落廁所。", function(){ m.status = "disposed"; toast("已記錄棄置"); render(); }); }
+        else if(act === "usedup"){ askConfirm("標記為食晒／唔再用？", "「" + m.name + "」會由藥箱移除。", function(){ m.status = "usedup"; toast("已移除"); render(); }); }
+      }
+
+      /* ---------- 今日食藥 ---------- */
+      function todayDoses(){
+        var t = todayStr(), log = state.taken[t] || {}, out = [];
+        activeMeds().forEach(function(m){
+          if(m.sched && m.sched.on) m.sched.times.forEach(function(tm){
+            out.push({ med: m, time: tm, done: !!log[m.id + "@" + tm] });
+          });
+        });
+        out.sort(function(a, b){ return a.time < b.time ? -1 : 1; });
+        return out;
+      }
+      function renderToday(){
+        var doses = todayDoses();
+        document.getElementById("todayEmpty").classList.toggle("hidden", doses.length !== 0);
+        var doneC = doses.filter(function(x){ return x.done; }).length;
+        document.getElementById("todayTitle").textContent = "今日食藥時間表（" + doneC + "／" + doses.length + " 次已食）";
+        var groups = {}, order = [];
+        doses.forEach(function(x){ if(!groups[x.time]){ groups[x.time] = []; order.push(x.time); } groups[x.time].push(x); });
+        document.getElementById("todayList").innerHTML = order.map(function(tm){
+          return '<div class="timegroup"><div class="timehead"><span class="tm">' + tm + '</span></div>' +
+            groups[tm].map(function(x){
+              var who = memberById(x.med.memberId);
+              return '<div class="dose' + (x.done ? " done" : "") + '">' +
+                (who ? '<span class="avatar" style="background:' + who.color + '">' + esc(who.name.slice(0,1)) + "</span>" : "") +
+                '<div class="grow"><strong>' + esc(x.med.name) + '</strong><div class="sub">' +
+                esc(x.med.sched.dose || "") + "・" + esc(x.med.sched.meal) +
+                (x.med.qty !== "" && x.med.qty !== null ? "・剩 " + x.med.qty + esc(x.med.unit) : "") +
+                (who ? "・" + esc(who.name) : "") + "</div></div>" +
+                '<button class="takbtn" data-take="' + x.med.id + '" data-time="' + tm + '">' + (x.done ? "已食 ✓" : "撳掣：已食") + "</button></div>";
+            }).join("") + "</div>";
+        }).join("");
+        document.querySelectorAll("[data-take]").forEach(function(b){
+          b.addEventListener("click", function(){ toggleTaken(b.getAttribute("data-take"), b.getAttribute("data-time")); });
+        });
+      }
+      function toggleTaken(medId, time){
+        var t = todayStr(); state.taken[t] = state.taken[t] || {};
+        var k = medId + "@" + time, m = null;
+        state.meds.forEach(function(x){ if(x.id === medId) m = x; });
+        if(state.taken[t][k]){ delete state.taken[t][k]; }
+        else {
+          state.taken[t][k] = true;
+          if(m && m.qty !== "" && m.qty !== null && m.sched && m.sched.dose){
+            var n = parseFloat(m.sched.dose);
+            if(!isNaN(n) && n > 0) m.qty = Math.max(0, (+m.qty) - n);
+          }
+          toast("已記錄食咗" + (m ? "：" + m.name : ""));
+        }
+        render();
+      }
+
+      /* ---------- 睇醫生記錄 ---------- */
+      function renderVisits(){
+        var list = state.visits.slice().sort(function(a, b){ return a.date < b.date ? 1 : -1; });
+        document.getElementById("visitEmpty").classList.toggle("hidden", list.length !== 0);
+        document.getElementById("visitList").innerHTML = list.map(function(v){
+          var who = memberById(v.memberId);
+          return '<div class="visit"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap">' +
+            '<span class="vdate">' + fmtDate(v.date) + "</span>" +
+            (who ? '<span class="tag who" style="background:' + who.color + '">' + esc(who.name) + "</span>" : "") + "</div>" +
+            (v.place ? "<h3 style='margin-top:5px'>" + esc(v.place) + "</h3>" : "") +
+            (v.reason ? '<p class="sub">' + esc(v.reason) + "</p>" : "") +
+            (v.meds.length ? '<div class="medchips">' + v.meds.map(function(nm){
+              return '<span class="medchip">' + esc(nm) + '<button data-addfrom="' + v.id + '" data-name="' + esc(nm) + '">入藥箱</button></span>';
+            }).join("") + "</div>" : "") +
+            (v.notes ? '<p class="sub" style="margin-top:7px">' + esc(v.notes) + "</p>" : "") +
+            '<div class="cardactions"><button class="btn ghost small" data-delvisit="' + v.id + '">刪除記錄</button></div></div>';
+        }).join("");
+        document.querySelectorAll("[data-addfrom]").forEach(function(b){
+          b.addEventListener("click", function(){
+            var v = null; state.visits.forEach(function(x){ if(x.id === b.getAttribute("data-addfrom")) v = x; });
+            openMed(null, { name: b.getAttribute("data-name"), memberId: v ? v.memberId : null, cat: "醫生處方藥" });
+          });
+        });
+        document.querySelectorAll("[data-delvisit]").forEach(function(b){
+          b.addEventListener("click", function(){
+            askConfirm("刪除呢條睇醫生記錄？", "刪除之後冇得復原。", function(){
+              state.visits = state.visits.filter(function(x){ return x.id !== b.getAttribute("data-delvisit"); });
+              render();
+            });
+          });
+        });
+      }
+
+      /* ---------- 棄置版 ---------- */
+      function renderCare(){
+        var exp = activeMeds().filter(function(m){ return medStatus(m).st === "expired"; });
+        document.getElementById("expiredList").innerHTML = exp.length ?
+          exp.map(function(m){
+            var who = memberById(m.memberId);
+            return '<div class="dose"><div class="grow"><strong>' + esc(m.name) + "</strong>" +
+              '<div class="sub">已過期 ' + Math.abs(medStatus(m).eff) + " 日" + (who ? "・" + esc(who.name) : "") + "</div></div>" +
+              '<button class="btn danger-ghost small" data-disp="' + m.id + '">已棄置</button></div>';
+          }).join("") :
+          '<p class="sub">而家冇已過期嘅藥，好事嚟。</p>';
+        document.querySelectorAll("[data-disp]").forEach(function(b){
+          b.addEventListener("click", function(){ medAction("dispose", b.getAttribute("data-disp")); });
+        });
+      }
+
+      /* ---------- 分頁 ---------- */
+      document.querySelectorAll(".tab").forEach(function(t){
+        t.addEventListener("click", function(){
+          document.querySelectorAll(".tab").forEach(function(x){ x.setAttribute("aria-selected", x === t ? "true" : "false"); });
+          ["cabinet","today","followup","emergency","symptoms","visits","care"].forEach(function(p){
+            document.getElementById("page-" + p).classList.toggle("hidden", p !== t.getAttribute("data-tab"));
+          });
+          window.scrollTo({ top: 0 });
+        });
+      });
+      document.getElementById("q").addEventListener("input", renderMeds);
+      document.getElementById("fStatus").addEventListener("change", renderMeds);
+      document.getElementById("fSort").addEventListener("change", renderMeds);
+
+      /* ---------- 確認框／提示 ---------- */
+      function askConfirm(title, text, cb){
+        document.getElementById("cfTitle").textContent = title;
+        document.getElementById("cfText").textContent = text;
+        document.getElementById("cfYes").textContent = "確定";
+        confirmCb = cb;
+        document.getElementById("confirmDlg").showModal();
+      }
+      document.getElementById("cfYes").addEventListener("click", function(){
+        document.getElementById("confirmDlg").close();
+        if(confirmCb) confirmCb(); confirmCb = null;
+      });
+      document.getElementById("cfNo").addEventListener("click", function(){
+        document.getElementById("confirmDlg").close(); confirmCb = null;
+      });
+      var toastTimer = null;
+      function toast(msg){
+        var el = document.getElementById("toast");
+        el.textContent = msg; el.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2600);
+      }
+      document.querySelectorAll("[data-close]").forEach(function(b){
+        b.addEventListener("click", function(){ b.closest("dialog").close(); });
+      });
+
+      /* ---------- 藥物表單 ---------- */
+      var TIME_OPTS = ["07:00","08:00","09:00","12:00","13:00","18:00","19:00","21:00","22:00","23:00"];
+      function fillMemberSelect(sel, val){
+        sel.innerHTML = state.members.map(function(mb){
+          return '<option value="' + mb.id + '">' + esc(mb.name) + "</option>";
+        }).join("");
+        if(val) sel.value = val;
+      }
+      function renderTimeChips(){
+        document.getElementById("timeChips").innerHTML = TIME_OPTS.map(function(tm){
+          return '<button type="button" class="tchip" data-tm="' + tm + '" aria-pressed="' + (selTimes.indexOf(tm) > -1) + '">' + tm + "</button>";
+        }).join("");
+        document.querySelectorAll("#timeChips .tchip").forEach(function(c){
+          c.addEventListener("click", function(){
+            var tm = c.getAttribute("data-tm"), i = selTimes.indexOf(tm);
+            if(i > -1) selTimes.splice(i, 1); else selTimes.push(tm);
+            selTimes.sort(); renderTimeChips();
+          });
+        });
+      }
+      function openMed(m, prefill){
+        editMedId = m ? m.id : null;
+        editPhoto = m ? (m.photo || "") : "";
+        selTimes = (m && m.sched) ? m.sched.times.slice() : [];
+        document.getElementById("medDlgTitle").textContent = m ? "編輯藥物" : "加入藥物";
+        document.getElementById("fName").value = m ? m.name : (prefill && prefill.name) || "";
+        fillMemberSelect(document.getElementById("fMember"), m ? m.memberId : (prefill && prefill.memberId) || (filterMember !== "all" ? filterMember : null));
+        document.getElementById("fCat").value = m ? m.cat : (prefill && prefill.cat) || "成藥";
+        document.getElementById("fExpiry").value = m ? m.expiry : "";
+        document.getElementById("fOpened").value = m ? (m.opened || "") : "";
+        document.getElementById("fShelf").value = m ? (m.shelf || "") : "";
+        document.getElementById("fQty").value = m ? (m.qty === null ? "" : m.qty) : "";
+        document.getElementById("fUnit").value = m ? m.unit : "粒";
+        document.getElementById("fLow").value = m ? (m.low === null ? "" : m.low) : "";
+        document.getElementById("fLoc").value = m ? (m.loc || "") : "";
+        document.getElementById("fNotes").value = m ? (m.notes || "") : "";
+        var on = m && m.sched ? m.sched.on : false;
+        document.getElementById("fSchedOn").checked = on;
+        document.getElementById("schedFields").classList.toggle("hidden", !on);
+        document.getElementById("fDose").value = (m && m.sched) ? (m.sched.dose || "") : "";
+        document.getElementById("fMeal").value = (m && m.sched) ? (m.sched.meal || "飯後") : "飯後";
+        updatePhotoPrev(); renderTimeChips();
+        document.getElementById("medDlg").showModal();
+      }
+      function updatePhotoPrev(){
+        var img = document.getElementById("photoPrev");
+        img.classList.toggle("hidden", !editPhoto);
+        if(editPhoto) img.src = editPhoto;
+        document.getElementById("btnPhotoDel").classList.toggle("hidden", !editPhoto);
+      }
+      document.getElementById("btnAddMed").addEventListener("click", function(){ openMed(null); });
+      document.getElementById("fSchedOn").addEventListener("change", function(){
+        document.getElementById("schedFields").classList.toggle("hidden", !this.checked);
+      });
+      document.getElementById("btnPhoto").addEventListener("click", function(){
+        document.getElementById("photoFile").click();
+      });
+      document.getElementById("btnPhotoDel").addEventListener("click", function(){ editPhoto = ""; updatePhotoPrev(); });
+      document.getElementById("photoFile").addEventListener("change", function(){
+        var f = this.files[0]; if(!f) return;
+        var rd = new FileReader();
+        rd.onload = function(){
+          var im = new Image();
+          im.onload = function(){
+            var max = 720, sc = Math.min(1, max / Math.max(im.width, im.height));
+            var cv = document.createElement("canvas");
+            cv.width = Math.round(im.width * sc); cv.height = Math.round(im.height * sc);
+            cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+            editPhoto = cv.toDataURL("image/jpeg", 0.72);
+            updatePhotoPrev();
+          };
+          im.src = rd.result;
+        };
+        rd.readAsDataURL(f);
+        this.value = "";
+      });
+      document.getElementById("medForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var name = document.getElementById("fName").value.trim();
+        var expiry = document.getElementById("fExpiry").value;
+        if(!name || !expiry){ toast("要填藥名同到期日"); return; }
+        var schedOn = document.getElementById("fSchedOn").checked;
+        if(schedOn && !selTimes.length){ toast("揀至少一個食藥時間"); return; }
+        var data = {
+          name: name,
+          memberId: document.getElementById("fMember").value,
+          cat: document.getElementById("fCat").value,
+          expiry: expiry,
+          opened: document.getElementById("fOpened").value || null,
+          shelf: document.getElementById("fShelf").value || null,
+          qty: document.getElementById("fQty").value === "" ? null : +document.getElementById("fQty").value,
+          unit: document.getElementById("fUnit").value,
+          low: document.getElementById("fLow").value === "" ? null : +document.getElementById("fLow").value,
+          loc: document.getElementById("fLoc").value.trim(),
+          notes: document.getElementById("fNotes").value.trim(),
+          photo: editPhoto,
+          sched: { on: schedOn, dose: document.getElementById("fDose").value.trim(),
+                   meal: document.getElementById("fMeal").value, times: selTimes.slice().sort() }
+        };
+        var isNew = !editMedId;
+        var others = activeMeds().filter(function(x){ return x.memberId === data.memberId && x.id !== editMedId; });
+        if(editMedId){
+          state.meds.forEach(function(x){ if(x.id === editMedId) for(var k in data) x[k] = data[k]; });
+          toast("已更新：" + name);
+        } else {
+          data.id = uid(); data.status = "active"; data.createdAt = todayStr();
+          state.meds.push(data);
+          toast("已加入藥箱：" + name);
+        }
+        document.getElementById("medDlg").close();
+        render();
+        if(isNew && others.length){
+          setTimeout(function(){
+            askConfirm("提提你：新藥相沖要問專業人士",
+              "呢位家人嘅藥箱已經有 " + others.length + " 隻藥。「" + name + "」會唔會同佢哋相沖，呢個 app 唔會亦唔應該幫你估——食之前請問醫生或者註冊藥劑師，或者睇清楚說明書嘅藥物相互作用一欄。",
+              function(){});
+            document.getElementById("cfYes").textContent = "知道了";
+          }, 250);
+        }
+      });
+
+      /* ---------- 家人表單 ---------- */
+      function renderColorChips(){
+        document.getElementById("colorChips").innerHTML = COLORS.map(function(c){
+          return '<button type="button" class="tchip" data-color="' + c + '" aria-pressed="' + (selColor === c) +
+            '" style="border-color:' + c + '"><span class="avatar" style="background:' + c + ';width:24px;height:24px"></span></button>';
+        }).join("");
+        document.querySelectorAll("#colorChips .tchip").forEach(function(b){
+          b.addEventListener("click", function(){ selColor = b.getAttribute("data-color"); renderColorChips(); });
+        });
+      }
+      function openMember(id){
+        editMemberId = id;
+        var mb = id ? memberById(id) : null;
+        selColor = mb ? mb.color : COLORS[state.members.length % COLORS.length];
+        document.getElementById("memberDlgTitle").textContent = mb ? "編輯家人" : "新增家人";
+        document.getElementById("mName").value = mb ? mb.name : "";
+        document.getElementById("mBlood").value = mb ? (mb.blood || "") : "";
+        document.getElementById("mAllergy").value = mb ? (mb.allergies || "") : "";
+        document.getElementById("mCond").value = mb ? (mb.conditions || "") : "";
+        document.getElementById("mContact").value = mb ? (mb.contact || "") : "";
+        document.getElementById("btnDelMember").classList.toggle("hidden", !mb);
+        renderColorChips();
+        document.getElementById("memberDlg").showModal();
+      }
+      document.getElementById("btnAddMember2").addEventListener("click", function(){ openMember(null); });
+      document.getElementById("memberForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var nm = document.getElementById("mName").value.trim();
+        if(!nm){ toast("要填稱呼"); return; }
+        var health = {
+          blood: document.getElementById("mBlood").value,
+          allergies: document.getElementById("mAllergy").value.trim(),
+          conditions: document.getElementById("mCond").value.trim(),
+          contact: document.getElementById("mContact").value.trim()
+        };
+        if(editMemberId){ var mb = memberById(editMemberId); mb.name = nm; mb.color = selColor;
+          for(var hk in health) mb[hk] = health[hk]; }
+        else { var nm2 = { id: uid(), name: nm, color: selColor };
+          for(var hk2 in health) nm2[hk2] = health[hk2]; state.members.push(nm2); }
+        document.getElementById("memberDlg").close();
+        toast("已儲存家人：" + nm); render();
+      });
+      document.getElementById("btnDelMember").addEventListener("click", function(){
+        var mb = memberById(editMemberId); if(!mb) return;
+        document.getElementById("memberDlg").close();
+        askConfirm("刪除家人「" + mb.name + "」？",
+          "佢名下所有藥物、食藥記錄同睇醫生記錄會一齊刪除，冇得復原。", function(){
+            state.meds = state.meds.filter(function(x){ return x.memberId !== mb.id; });
+            state.visits = state.visits.filter(function(x){ return x.memberId !== mb.id; });
+            state.followups = (state.followups || []).filter(function(x){ return x.memberId !== mb.id; });
+            state.symptoms = (state.symptoms || []).filter(function(x){ return x.memberId !== mb.id; });
+            state.members = state.members.filter(function(x){ return x.id !== mb.id; });
+            if(filterMember === mb.id) filterMember = "all";
+            toast("已刪除"); render();
+          });
+      });
+
+      /* ---------- 睇醫生表單 ---------- */
+      document.getElementById("btnAddVisit").addEventListener("click", function(){
+        document.getElementById("vDate").value = todayStr();
+        fillMemberSelect(document.getElementById("vMember"), filterMember !== "all" ? filterMember : null);
+        document.getElementById("visitDlg").showModal();
+      });
+      document.getElementById("visitForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var date = document.getElementById("vDate").value;
+        if(!date){ toast("要揀日期"); return; }
+        var meds = document.getElementById("vMeds").value.split("\n")
+          .map(function(s){ return s.trim(); }).filter(function(s){ return s; });
+        var vMemberId = document.getElementById("vMember").value;
+        var vPlace = document.getElementById("vPlace").value.trim();
+        state.visits.push({ id: uid(), date: date,
+          memberId: vMemberId,
+          place: vPlace,
+          reason: document.getElementById("vReason").value.trim(),
+          meds: meds, notes: document.getElementById("vNotes").value.trim() });
+        var vNext = document.getElementById("vNext").value;
+        if(vNext){
+          state.followups = state.followups || [];
+          state.followups.push({ id: uid(), date: vNext, time: "",
+            memberId: vMemberId, type: document.getElementById("vNextType").value,
+            place: vPlace, remind: 3, notes: "", done: false });
+          toast("已記錄，覆診日子已加入提醒");
+        }
+        document.getElementById("visitDlg").close();
+        document.getElementById("vPlace").value = ""; document.getElementById("vReason").value = "";
+        document.getElementById("vMeds").value = ""; document.getElementById("vNotes").value = "";
+        document.getElementById("vNext").value = "";
+        toast("已記錄睇醫生"); render();
+      });
+
+      /* ---------- 備份 ---------- */
+      document.getElementById("btnExport").addEventListener("click", function(){
+        var blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "藥箱備份-" + todayStr() + ".json";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+        toast("備份檔已下載，收好佢");
+      });
+      document.getElementById("btnImport").addEventListener("click", function(){
+        document.getElementById("importFile").click();
+      });
+      document.getElementById("importFile").addEventListener("change", function(){
+        var f = this.files[0]; if(!f) return;
+        var rd = new FileReader();
+        rd.onload = function(){
+          try {
+            var s = JSON.parse(rd.result);
+            if(!s || !s.members || !s.meds) throw new Error("bad");
+            s = normalizeState(s);
+            askConfirm("匯入呢份備份？", "而家藥箱入面嘅資料會俾備份檔完全取代。", function(){
+              state = s; filterMember = "all"; toast("匯入完成"); render();
+            });
+          } catch(e){ toast("呢個唔係有效嘅備份檔"); }
+        };
+        rd.readAsText(f);
+        this.value = "";
+      });
+      document.getElementById("btnWipe").addEventListener("click", function(){
+        askConfirm("清除全部資料？", "所有家人、藥物、食藥同睇醫生記錄會即刻刪走，冇得復原。", function(){
+          localStorage.removeItem(KEY);
+          state = blankState();
+          filterMember = "all"; symFilter = "all"; emgMemberId = null;
+          toast("已清除全部資料"); render();
+        });
+      });
+
+      /* ---------- 分頁切換（俾其他功能跳頁用） ---------- */
+      function showTab(name){
+        var t = document.querySelector('.tab[data-tab="' + name + '"]');
+        if(t) t.click();
+      }
+
+      /* ---------- 覆診提醒 ---------- */
+      function renderFollowups(){
+        var list = (state.followups || []).slice().sort(function(a, b){
+          if(!!a.done !== !!b.done) return a.done ? 1 : -1;
+          return a.date < b.date ? -1 : 1;
+        });
+        var el = document.getElementById("fuList");
+        if(!el) return;
+        document.getElementById("fuEmpty").classList.toggle("hidden", list.length !== 0);
+        el.innerHTML = list.map(function(f){
+          var who = memberById(f.memberId), dl = daysLeft(f.date), cls = "fu", badge;
+          if(f.done){ cls += " fu-done"; badge = '<span class="badge ok">已完成</span>'; }
+          else if(dl !== null && dl < 0){ cls += " fu-over"; badge = '<span class="badge bad">已過期 ' + Math.abs(dl) + " 日</span>"; }
+          else if(dl === 0){ cls += " fu-soon"; badge = '<span class="badge bad">就係今日</span>'; }
+          else if(dl !== null && dl <= (+f.remind || 3)){ cls += " fu-soon"; badge = '<span class="badge soon">仲有 ' + dl + " 日，就快到</span>"; }
+          else { badge = '<span class="badge ok">仲有 ' + dl + " 日</span>"; }
+          return '<div class="' + cls + '"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">' +
+            '<span class="fdate">' + fmtDate(f.date) + (f.time ? " " + esc(f.time) : "") + "</span>" + badge + "</div>" +
+            '<div style="margin-top:5px"><strong>' + esc(f.type) + "</strong>" +
+            (who ? ' <span class="tag who" style="background:' + who.color + '">' + esc(who.name) + "</span>" : "") +
+            (f.place ? ' <span class="sub">' + esc(f.place) + "</span>" : "") + "</div>" +
+            '<div class="sub">提早 ' + (+f.remind || 3) + " 日提醒" + (f.notes ? "・" + esc(f.notes) : "") + "</div>" +
+            '<div class="cardactions">' +
+            (f.done ? '<button class="btn ghost small" data-fu="undone" data-id="' + f.id + '">未完成</button>'
+                    : '<button class="btn ghost small" data-fu="done" data-id="' + f.id + '">已去完／完成</button>') +
+            '<button class="btn ghost small" data-fu="edit" data-id="' + f.id + '">編輯</button>' +
+            '<button class="btn ghost small" data-fu="del" data-id="' + f.id + '">刪除</button>' +
+            "</div></div>";
+        }).join("");
+        el.querySelectorAll("[data-fu]").forEach(function(b){
+          b.addEventListener("click", function(){
+            var id = b.getAttribute("data-id"), act = b.getAttribute("data-fu"), f = null;
+            (state.followups || []).forEach(function(x){ if(x.id === id) f = x; }); if(!f) return;
+            if(act === "edit") openFu(f);
+            else if(act === "done"){ f.done = true; toast("已標記完成"); render(); }
+            else if(act === "undone"){ f.done = false; render(); }
+            else if(act === "del"){ askConfirm("刪除呢個覆診日子？", fmtDate(f.date) + " 嘅「" + f.type + "」會刪除，冇得復原。", function(){
+              state.followups = state.followups.filter(function(x){ return x.id !== id; }); render(); }); }
+          });
+        });
+      }
+      function openFu(f){
+        editFuId = f ? f.id : null;
+        document.getElementById("fuDlgTitle").textContent = f ? "編輯覆診日子" : "新增覆診日子";
+        document.getElementById("fuDate").value = f ? f.date : "";
+        document.getElementById("fuTime").value = f ? (f.time || "") : "";
+        fillMemberSelect(document.getElementById("fuMember"), f ? f.memberId : (filterMember !== "all" ? filterMember : null));
+        document.getElementById("fuType").value = f ? f.type : "覆診";
+        document.getElementById("fuPlace").value = f ? (f.place || "") : "";
+        document.getElementById("fuRemind").value = f ? String(f.remind || 3) : "3";
+        document.getElementById("fuNotes").value = f ? (f.notes || "") : "";
+        document.getElementById("fuDlg").showModal();
+      }
+      document.getElementById("btnAddFu").addEventListener("click", function(){ openFu(null); });
+      document.getElementById("fuForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var date = document.getElementById("fuDate").value;
+        if(!date){ toast("要揀日子"); return; }
+        var data = { date: date, time: document.getElementById("fuTime").value,
+          memberId: document.getElementById("fuMember").value,
+          type: document.getElementById("fuType").value,
+          place: document.getElementById("fuPlace").value.trim(),
+          remind: +document.getElementById("fuRemind").value,
+          notes: document.getElementById("fuNotes").value.trim() };
+        if(editFuId){ state.followups.forEach(function(x){ if(x.id === editFuId) for(var k in data) x[k] = data[k]; }); toast("已更新覆診日子"); }
+        else { data.id = uid(); data.done = false; state.followups = state.followups || []; state.followups.push(data); toast("已加入覆診提醒：" + fmtDate(date)); }
+        document.getElementById("fuDlg").close(); render();
+      });
+
+      /* ---------- 緊急資料卡 ---------- */
+      function renderEmergency(){
+        var chips = document.getElementById("emgChips");
+        if(!chips) return;
+        if(!emgMemberId || !memberById(emgMemberId)) emgMemberId = state.members.length ? state.members[0].id : null;
+        chips.innerHTML = state.members.map(function(mb){
+          return '<button class="mchip" data-emg="' + mb.id + '" aria-pressed="' + (emgMemberId === mb.id) + '">' +
+            '<span class="avatar" style="background:' + mb.color + '">' + esc(mb.name.slice(0,1)) + "</span>" + esc(mb.name) + "</button>";
+        }).join("");
+        chips.querySelectorAll("[data-emg]").forEach(function(b){
+          b.addEventListener("click", function(){ emgMemberId = b.getAttribute("data-emg"); renderEmergency(); });
+        });
+        var mb = memberById(emgMemberId), box = document.getElementById("emgCard");
+        if(!mb){ box.innerHTML = ""; return; }
+        var meds = activeMeds().filter(function(m){ return m.memberId === mb.id; });
+        var medHtml = meds.length ? '<ul class="emgmeds">' + meds.map(function(m){
+          var s = (m.sched && m.sched.on) ? "（" + esc(m.sched.dose || "") + "・" + esc(m.sched.times.join("、")) + "・" + esc(m.sched.meal) + "）" : "";
+          return "<li><strong>" + esc(m.name) + "</strong>" + s + "</li>";
+        }).join("") + "</ul>" : '<div class="ev">藥箱未有呢位家人嘅藥</div>';
+        box.innerHTML = '<div class="emgcard">' +
+          '<div class="sub" style="font-weight:900">緊急資料卡・俾醫生睇</div>' +
+          '<div class="ename">' + esc(mb.name) + "</div>" +
+          '<div class="emgsec"><div class="ek">血型</div><div class="ev blood">' + (mb.blood ? esc(mb.blood) + " 型" : "未填") + "</div></div>" +
+          '<div class="emgsec"><div class="ek">藥物敏感</div><div class="ev allergy">' + (mb.allergies ? esc(mb.allergies) : "未填（冇填唔代表冇敏感）") + "</div></div>" +
+          '<div class="emgsec"><div class="ek">長期病患</div><div class="ev">' + (mb.conditions ? esc(mb.conditions) : "未填") + "</div></div>" +
+          '<div class="emgsec"><div class="ek">而家食緊嘅藥（' + meds.length + ' 隻）</div>' + medHtml + "</div>" +
+          (mb.contact ? '<div class="emgsec"><div class="ek">緊急聯絡人</div><div class="ev">' + esc(mb.contact) + "</div></div>" : "") +
+          "</div>" +
+          '<div class="cardactions"><button class="btn primary small" id="btnEmgEdit">編輯健康資料</button>' +
+          '<button class="btn ghost small" id="btnEmgPrint">打印呢位家人藥單</button></div>';
+        document.getElementById("btnEmgEdit").addEventListener("click", function(){ openMember(mb.id); });
+        document.getElementById("btnEmgPrint").addEventListener("click", function(){ openPrint(mb.id); });
+      }
+
+      /* ---------- 體溫・症狀記錄 ---------- */
+      function tempBadge(t){
+        if(t === null || t === "" || isNaN(+t)) return "";
+        var v = +t;
+        if(v >= 39) return '<span class="tempbadge bad">' + v.toFixed(1) + "°C 高燒</span>";
+        if(v >= 38) return '<span class="tempbadge warn">' + v.toFixed(1) + "°C 發燒</span>";
+        if(v >= 37.5) return '<span class="tempbadge warn">' + v.toFixed(1) + "°C 微燒</span>";
+        return '<span class="tempbadge ok">' + v.toFixed(1) + "°C</span>";
+      }
+      function renderSymptoms(){
+        var chips = document.getElementById("symChips");
+        if(!chips) return;
+        var html = '<button class="mchip" data-symf="all" aria-pressed="' + (symFilter === "all") + '"><span class="avatar" style="background:var(--teal)">全</span>全部家人</button>';
+        state.members.forEach(function(mb){
+          html += '<button class="mchip" data-symf="' + mb.id + '" aria-pressed="' + (symFilter === mb.id) + '">' +
+            '<span class="avatar" style="background:' + mb.color + '">' + esc(mb.name.slice(0,1)) + "</span>" + esc(mb.name) + "</button>";
+        });
+        chips.innerHTML = html;
+        chips.querySelectorAll("[data-symf]").forEach(function(b){
+          b.addEventListener("click", function(){ symFilter = b.getAttribute("data-symf"); renderSymptoms(); });
+        });
+        var list = (state.symptoms || []).filter(function(s){ return symFilter === "all" || s.memberId === symFilter; })
+          .slice().sort(function(a, b){ var ka = a.date + (a.time || ""), kb = b.date + (b.time || ""); return ka < kb ? 1 : -1; });
+        document.getElementById("symEmpty").classList.toggle("hidden", (state.symptoms || []).length !== 0);
+        var el = document.getElementById("symList");
+        el.innerHTML = list.map(function(s){
+          var who = memberById(s.memberId);
+          return '<div class="sym"><div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:center">' +
+            '<span class="vdate" style="font-weight:900;color:var(--teal-dark)">' + fmtDate(s.date) + (s.time ? " " + esc(s.time) : "") + "</span>" +
+            "<span>" + tempBadge(s.temp) + "</span></div>" +
+            '<div style="margin-top:5px">' + (who ? '<span class="tag who" style="background:' + who.color + '">' + esc(who.name) + "</span> " : "") +
+            (s.symptoms ? "<strong>" + esc(s.symptoms) + "</strong>" : "") + "</div>" +
+            (s.medsTaken ? '<p class="sub" style="margin-top:4px">食咗：' + esc(s.medsTaken) + "</p>" : "") +
+            (s.notes ? '<p class="sub">' + esc(s.notes) + "</p>" : "") +
+            '<div class="cardactions"><button class="btn ghost small" data-symedit="' + s.id + '">編輯</button>' +
+            '<button class="btn ghost small" data-symdel="' + s.id + '">刪除</button></div></div>';
+        }).join("");
+        if((state.symptoms || []).length && !list.length)
+          el.innerHTML = '<div class="empty"><div class="big">呢位家人未有記錄</div><p class="sub">撳上面「記錄體溫／症狀」加第一筆。</p></div>';
+        el.querySelectorAll("[data-symedit]").forEach(function(b){
+          b.addEventListener("click", function(){
+            var s = null; (state.symptoms || []).forEach(function(x){ if(x.id === b.getAttribute("data-symedit")) s = x; });
+            if(s) openSym(s);
+          });
+        });
+        el.querySelectorAll("[data-symdel]").forEach(function(b){
+          b.addEventListener("click", function(){
+            askConfirm("刪除呢筆症狀記錄？", "刪除之後冇得復原。", function(){
+              state.symptoms = state.symptoms.filter(function(x){ return x.id !== b.getAttribute("data-symdel"); }); render();
+            });
+          });
+        });
+      }
+      function renderSymQuick(){
+        var mid = document.getElementById("sMember").value;
+        var meds = activeMeds().filter(function(m){ return m.memberId === mid; });
+        var box = document.getElementById("sMedQuick");
+        box.innerHTML = meds.length ? '<span class="sub" style="align-self:center">快捷加入：</span>' + meds.map(function(m){
+          return '<button type="button" class="tchip" data-quickmed="' + esc(m.name) + '">' + esc(m.name) + "</button>";
+        }).join("") : "";
+        box.querySelectorAll("[data-quickmed]").forEach(function(b){
+          b.addEventListener("click", function(){
+            var inp = document.getElementById("sMeds"), nm = b.getAttribute("data-quickmed");
+            inp.value = inp.value.trim() ? inp.value.trim() + "、" + nm : nm;
+          });
+        });
+      }
+      function openSym(s){
+        editSymId = s ? s.id : null;
+        document.getElementById("symDlgTitle").textContent = s ? "編輯體溫／症狀記錄" : "記錄體溫／症狀";
+        var now = new Date();
+        document.getElementById("sDate").value = s ? s.date : todayStr();
+        document.getElementById("sTime").value = s ? (s.time || "") :
+          (now.getHours() < 10 ? "0" : "") + now.getHours() + ":" + (now.getMinutes() < 10 ? "0" : "") + now.getMinutes();
+        fillMemberSelect(document.getElementById("sMember"), s ? s.memberId : (filterMember !== "all" ? filterMember : null));
+        document.getElementById("sTemp").value = s && s.temp !== null && s.temp !== "" ? s.temp : "";
+        document.getElementById("sSym").value = s ? (s.symptoms || "") : "";
+        document.getElementById("sMeds").value = s ? (s.medsTaken || "") : "";
+        document.getElementById("sNotes").value = s ? (s.notes || "") : "";
+        renderSymQuick();
+        document.getElementById("symDlg").showModal();
+      }
+      document.getElementById("btnAddSym").addEventListener("click", function(){ openSym(null); });
+      document.getElementById("sMember").addEventListener("change", renderSymQuick);
+      document.getElementById("symForm").addEventListener("submit", function(e){
+        e.preventDefault();
+        var date = document.getElementById("sDate").value;
+        if(!date){ toast("要揀日期"); return; }
+        var tempRaw = document.getElementById("sTemp").value;
+        var data = { date: date, time: document.getElementById("sTime").value,
+          memberId: document.getElementById("sMember").value,
+          temp: tempRaw === "" ? null : +tempRaw,
+          symptoms: document.getElementById("sSym").value.trim(),
+          medsTaken: document.getElementById("sMeds").value.trim(),
+          notes: document.getElementById("sNotes").value.trim() };
+        if(!data.symptoms && data.temp === null && !data.medsTaken){ toast("至少填體溫、症狀或者食咗咩藥其中一樣"); return; }
+        if(editSymId){ state.symptoms.forEach(function(x){ if(x.id === editSymId) for(var k in data) x[k] = data[k]; }); toast("已更新記錄"); }
+        else { data.id = uid(); state.symptoms = state.symptoms || []; state.symptoms.push(data); toast("已記錄"); }
+        document.getElementById("symDlg").close(); render();
+      });
+
+      /* ---------- 語音輸入 ---------- */
+      var recog = null;
+      function startVoice(btn, targetId, langTried){
+        var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if(!SR){ toast("呢部機嘅瀏覽器未支援語音輸入，試下用 Chrome 開呢版再撳咪"); return; }
+        if(recog){ try { recog.stop(); } catch(e){} recog = null; }
+        var r = new SR(); recog = r;
+        r.lang = langTried ? "zh-HK" : "yue-Hant-HK";
+        r.interimResults = false; r.maxAlternatives = 1;
+        btn.classList.add("rec");
+        r.onresult = function(ev){
+          var txt = "";
+          for(var i = 0; i < ev.results.length; i++) txt += ev.results[i][0].transcript;
+          txt = txt.trim();
+          var el = document.getElementById(targetId);
+          if(el && txt){ var cur = el.value.trim(); el.value = cur ? cur + txt : txt; }
+          if(txt) toast("聽到：" + txt);
+        };
+        r.onerror = function(ev){
+          btn.classList.remove("rec");
+          if(ev.error === "language-not-supported" && !langTried){ startVoice(btn, targetId, true); return; }
+          if(ev.error === "not-allowed") toast("要允許瀏覽器用咪高峰，先用到語音輸入");
+          else if(ev.error !== "aborted" && ev.error !== "no-speech") toast("語音輸入出咗問題，再試下");
+          if(ev.error === "no-speech") toast("聽唔到聲，再講一次");
+        };
+        r.onend = function(){ btn.classList.remove("rec"); if(recog === r) recog = null; };
+        try { r.start(); toast("講啦，我聽緊…"); } catch(e){ btn.classList.remove("rec"); }
+      }
+      document.getElementById("micName").addEventListener("click", function(){ startVoice(this, "fName"); });
+      document.getElementById("micAllergy").addEventListener("click", function(){ startVoice(this, "mAllergy"); });
+      document.getElementById("micSym").addEventListener("click", function(){ startVoice(this, "sSym"); });
+      document.getElementById("micSymMed").addEventListener("click", function(){ startVoice(this, "sMeds"); });
+
+      /* ---------- 打印藥單 ---------- */
+      function printSheetHtml(memberId){
+        var targets = memberId === "all" ? state.members : [memberById(memberId)];
+        var html = "";
+        targets.forEach(function(mb){
+          if(!mb) return;
+          var meds = activeMeds().filter(function(m){ return m.memberId === mb.id; });
+          html += "<h2 style='margin:14px 0 4px'>" + esc(mb.name) + " 嘅藥物清單</h2>";
+          html += "<p style='margin:0 0 4px'>血型：" + (mb.blood ? esc(mb.blood) + " 型" : "未填") +
+            "・藥物敏感：" + (mb.allergies ? esc(mb.allergies) : "未填") +
+            "・長期病患：" + (mb.conditions ? esc(mb.conditions) : "未填") + "</p>";
+          if(!meds.length){ html += "<p>藥箱未有呢位家人嘅藥。</p>"; return; }
+          html += "<table><tr><th>藥名</th><th>食法</th><th>到期日</th><th>剩餘</th><th>備註</th></tr>";
+          meds.forEach(function(m){
+            var how = (m.sched && m.sched.on) ? esc(m.sched.dose || "") + "・" + esc(m.sched.times.join("、")) + "・" + esc(m.sched.meal) : "按需要／醫生指示";
+            html += "<tr><td><strong>" + esc(m.name) + "</strong><br/>" + esc(m.cat) + "</td><td>" + how + "</td><td>" +
+              fmtDate(m.expiry) + "</td><td>" + (m.qty === null || m.qty === "" ? "—" : m.qty + esc(m.unit)) + "</td><td>" +
+              esc(m.notes || "") + "</td></tr>";
+          });
+          html += "</table>";
+        });
+        return "<h1 style='font-size:1.35rem;margin:0'>屋企藥箱・藥物清單</h1>" +
+          "<p style='margin:2px 0 0'>列印日期：" + fmtDate(todayStr()) + "（睇醫生嗰陣帶埋去）</p>" + html;
+      }
+      function openPrint(memberId){
+        var sel = document.getElementById("printMember");
+        sel.innerHTML = '<option value="all">全部家人（一人一節）</option>' + state.members.map(function(mb){
+          return '<option value="' + mb.id + '">' + esc(mb.name) + "</option>";
+        }).join("");
+        sel.value = memberId || (filterMember !== "all" ? filterMember : "all");
+        document.getElementById("printPreview").innerHTML = printSheetHtml(sel.value);
+        document.getElementById("printDlg").showModal();
+      }
+      document.getElementById("btnPrintList").addEventListener("click", function(){ openPrint(null); });
+      document.getElementById("printMember").addEventListener("change", function(){
+        document.getElementById("printPreview").innerHTML = printSheetHtml(this.value);
+      });
+      document.getElementById("btnPrintDownload").addEventListener("click", function(){
+        var sheet = printSheetHtml(document.getElementById("printMember").value);
+        var doc = "<!doctype html><html lang='zh-Hant-HK'><head><meta charset='utf-8'/><title>藥物清單</title>" +
+          "<style>body{font-family:sans-serif;padding:20px;color:#111}table{width:100%;border-collapse:collapse;margin-top:8px}" +
+          "th,td{border:1px solid #999;padding:7px 9px;text-align:left;vertical-align:top}th{background:#eee}</style></head><body>" +
+          sheet + "</body></html>";
+        var blob = new Blob([doc], { type: "text/html" });
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "藥物清單-" + todayStr() + ".html";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+        toast("藥單檔已下載，開嚟就可以印");
+      });
+
+      render();
+    </script>
+  </body>
+</html>
